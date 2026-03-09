@@ -7,6 +7,7 @@ import { TopBar } from "@/components/layout/top-bar";
 import { CommandPalette } from "@/components/search/command-palette";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUIStore } from "@/stores/ui-store";
+import { useProjectStore } from "@/stores/project-store";
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,7 @@ export default function DashboardLayout({
   const token = useAuthStore((s) => s.token);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen);
+  const fetchProjects = useProjectStore((s) => s.fetchProjects);
 
   // Redirect to login only after hydration confirms no token
   useEffect(() => {
@@ -24,6 +26,13 @@ export default function DashboardLayout({
       router.push("/login");
     }
   }, [token, hasHydrated, router]);
+
+  // Fetch projects once when authenticated
+  useEffect(() => {
+    if (token) {
+      fetchProjects(token);
+    }
+  }, [token, fetchProjects]);
 
   // Cmd+K keyboard shortcut
   useEffect(() => {
@@ -37,9 +46,9 @@ export default function DashboardLayout({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [setCommandPaletteOpen]);
 
-  // Show nothing until hydration completes
-  if (!hasHydrated) return null;
-  if (!token) return null;
+  // Wait for hydration, but if token is already in memory (fresh login), render immediately
+  if (!hasHydrated && !token) return null;
+  if (hasHydrated && !token) return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
