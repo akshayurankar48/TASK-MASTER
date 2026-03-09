@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,31 +12,41 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/stores/ui-store";
-import { useAuthStore } from "@/stores/auth-store";
-import { api } from "@/lib/api-client";
+import { useProjectStore } from "@/stores/project-store";
 import { cn } from "@/lib/utils";
 
-interface Project {
-  _id: string;
-  name: string;
+function NavItem({
+  href,
+  icon: Icon,
+  label,
+  active,
+  showLabel,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  active: boolean;
+  showLabel: boolean;
+}) {
+  return (
+    <Link href={href}>
+      <div
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors hover:bg-accent",
+          active && "bg-accent text-accent-foreground"
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        {showLabel && <span className="truncate">{label}</span>}
+      </div>
+    </Link>
+  );
 }
 
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar } = useUIStore();
-  const token = useAuthStore((s) => s.token);
-  const [projects, setProjects] = useState<Project[]>([]);
-
-  useEffect(() => {
-    if (!token) return;
-    api
-      .getProjects(token)
-      .then((res: unknown) => {
-        const data = res as { data: Project[] };
-        setProjects(data.data || []);
-      })
-      .catch(() => {});
-  }, [token]);
+  const projects = useProjectStore((s) => s.projects);
 
   return (
     <AnimatePresence mode="wait">
@@ -78,17 +87,13 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-          <Link href="/projects">
-            <div
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors hover:bg-accent",
-                pathname === "/projects" && "bg-accent text-accent-foreground"
-              )}
-            >
-              <LayoutDashboard className="h-4 w-4 shrink-0" />
-              {sidebarOpen && <span className="truncate">All Projects</span>}
-            </div>
-          </Link>
+          <NavItem
+            href="/projects"
+            icon={LayoutDashboard}
+            label="All Projects"
+            active={pathname === "/projects"}
+            showLabel={sidebarOpen}
+          />
 
           {sidebarOpen && (
             <div className="pt-4 pb-2 px-3">
@@ -99,36 +104,26 @@ export function Sidebar() {
           )}
 
           {projects.map((project) => (
-            <Link key={project._id} href={`/projects/${project._id}`}>
-              <div
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors hover:bg-accent",
-                  pathname === `/projects/${project._id}` &&
-                    "bg-accent text-accent-foreground"
-                )}
-              >
-                <FolderKanban className="h-4 w-4 shrink-0" />
-                {sidebarOpen && (
-                  <span className="truncate">{project.name}</span>
-                )}
-              </div>
-            </Link>
+            <NavItem
+              key={project._id}
+              href={`/projects/${project._id}`}
+              icon={FolderKanban}
+              label={project.name}
+              active={pathname === `/projects/${project._id}`}
+              showLabel={sidebarOpen}
+            />
           ))}
         </nav>
 
         {/* Footer */}
         <div className="p-2 border-t border-border space-y-1">
-          <Link href="/settings">
-            <div
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors hover:bg-accent",
-                pathname === "/settings" && "bg-accent text-accent-foreground"
-              )}
-            >
-              <Settings className="h-4 w-4 shrink-0" />
-              {sidebarOpen && <span className="truncate">Settings</span>}
-            </div>
-          </Link>
+          <NavItem
+            href="/settings"
+            icon={Settings}
+            label="Settings"
+            active={pathname === "/settings"}
+            showLabel={sidebarOpen}
+          />
           <Link href="/projects">
             <Button
               variant="ghost"

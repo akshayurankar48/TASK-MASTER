@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ProjectCard } from "@/components/projects/project-card";
 import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
 import { useAuthStore } from "@/stores/auth-store";
+import { useProjectStore } from "@/stores/project-store";
 import { api } from "@/lib/api-client";
 
 interface Project {
@@ -16,6 +17,7 @@ interface Project {
 
 export default function ProjectsPage() {
   const token = useAuthStore((s) => s.token);
+  const refreshProjectStore = useProjectStore((s) => s.fetchProjects);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +37,11 @@ export default function ProjectsPage() {
     fetchProjects();
   }, [fetchProjects]);
 
+  const handleProjectCreated = useCallback(() => {
+    fetchProjects();
+    if (token) refreshProjectStore(token);
+  }, [fetchProjects, refreshProjectStore, token]);
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <motion.div
@@ -48,7 +55,7 @@ export default function ProjectsPage() {
             Manage and collaborate on your projects
           </p>
         </div>
-        <CreateProjectDialog onCreated={fetchProjects} />
+        <CreateProjectDialog onCreated={handleProjectCreated} />
       </motion.div>
 
       {loading ? (

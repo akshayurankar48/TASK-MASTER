@@ -13,6 +13,7 @@ import {
 import { FolderKanban, CheckSquare, MessageSquare } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useProjectStore } from "@/stores/project-store";
 import { api } from "@/lib/api-client";
 
 interface SearchResult {
@@ -28,23 +29,9 @@ export function CommandPalette() {
   const router = useRouter();
   const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
   const token = useAuthStore((s) => s.token);
+  const projects = useProjectStore((s) => s.projects);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult | null>(null);
-  const [projects, setProjects] = useState<
-    Array<{ _id: string; name: string }>
-  >([]);
-
-  // Load projects for navigation
-  useEffect(() => {
-    if (!token || !commandPaletteOpen) return;
-    api
-      .getProjects(token)
-      .then((res: unknown) => {
-        const data = res as { data: Array<{ _id: string; name: string }> };
-        setProjects(data.data || []);
-      })
-      .catch(() => {});
-  }, [token, commandPaletteOpen]);
 
   // Search debounce
   useEffect(() => {
@@ -54,14 +41,13 @@ export function CommandPalette() {
     }
 
     const timer = setTimeout(async () => {
-      // Search across all projects
       for (const project of projects) {
         try {
           const res = (await api.search(token, project._id, query)) as {
             data: SearchResult;
           };
           setResults(res.data);
-          break; // Show first project's results for now
+          break;
         } catch {
           // Skip projects that fail
         }
