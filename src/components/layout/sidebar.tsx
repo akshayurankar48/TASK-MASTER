@@ -9,6 +9,7 @@ import {
   Plus,
   ChevronLeft,
   LayoutDashboard,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/stores/ui-store";
@@ -116,7 +117,18 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="p-2 border-t border-border">
+        <div className="p-2 border-t border-border space-y-1">
+          <Link href="/settings">
+            <div
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors hover:bg-accent",
+                pathname === "/settings" && "bg-accent text-accent-foreground"
+              )}
+            >
+              <Settings className="h-4 w-4 shrink-0" />
+              {sidebarOpen && <span className="truncate">Settings</span>}
+            </div>
+          </Link>
           <Link href="/projects">
             <Button
               variant="ghost"
