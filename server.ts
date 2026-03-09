@@ -1,3 +1,6 @@
+import { config } from "dotenv";
+config(); // Load .env before anything else
+
 import { createServer } from "http";
 import next from "next";
 import express from "express";
@@ -18,7 +21,7 @@ app.prepare().then(() => {
   initSocketServer(httpServer);
 
   // Let Next.js handle all other requests
-  expressApp.all("*", (req, res) => {
+  expressApp.all("/{*path}", (req, res) => {
     return handle(req, res);
   });
 
