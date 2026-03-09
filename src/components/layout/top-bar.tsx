@@ -1,0 +1,106 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Search, Moon, Sun, LogOut } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useAuthStore } from "@/stores/auth-store";
+import { useUIStore } from "@/stores/ui-store";
+import { PresenceAvatars } from "./presence-avatars";
+
+export function TopBar() {
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen);
+
+  function handleLogout() {
+    logout();
+    router.push("/login");
+  }
+
+  const initials = user?.name
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
+      <div className="flex items-center gap-3">
+        {/* Search trigger */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 text-muted-foreground w-64 justify-start"
+          onClick={() => setCommandPaletteOpen(true)}
+        >
+          <Search className="h-4 w-4" />
+          <span className="text-sm">Search...</span>
+          <kbd className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded font-mono">
+            ⌘K
+          </kbd>
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-3">
+        {/* Presence */}
+        <PresenceAvatars />
+
+        {/* Theme toggle */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle theme</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* User menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <div className="px-2 py-1.5">
+              <p className="text-sm font-medium">{user?.name}</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
+            </div>
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+}
