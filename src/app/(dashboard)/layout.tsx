@@ -15,14 +15,15 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen);
 
-  // Redirect to login if not authenticated
+  // Redirect to login only after hydration confirms no token
   useEffect(() => {
-    if (!token) {
+    if (hasHydrated && !token) {
       router.push("/login");
     }
-  }, [token, router]);
+  }, [token, hasHydrated, router]);
 
   // Cmd+K keyboard shortcut
   useEffect(() => {
@@ -36,6 +37,8 @@ export default function DashboardLayout({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [setCommandPaletteOpen]);
 
+  // Show nothing until hydration completes
+  if (!hasHydrated) return null;
   if (!token) return null;
 
   return (

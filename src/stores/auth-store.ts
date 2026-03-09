@@ -7,9 +7,11 @@ import { AuthUser } from "@/types";
 interface AuthState {
   user: AuthUser | null;
   token: string | null;
+  _hasHydrated: boolean;
   setAuth: (user: AuthUser, token: string) => void;
   logout: () => void;
   isAuthenticated: () => boolean;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -17,12 +19,17 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
-      setAuth: (user, token) => set({ user, token }),
+      _hasHydrated: false,
+      setAuth: (user, token) => set({ user, token, _hasHydrated: true }),
       logout: () => set({ user: null, token: null }),
       isAuthenticated: () => !!get().token,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
     {
       name: "auth-storage",
+      onRehydrateStorage: () => () => {
+        useAuthStore.getState().setHasHydrated(true);
+      },
     }
   )
 );
