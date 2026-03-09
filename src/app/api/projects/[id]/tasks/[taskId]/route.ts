@@ -4,6 +4,7 @@ import { Task, Comment } from "@/lib/db/models";
 import { requireProjectMember } from "@/lib/api-utils";
 import { updateTaskSchema } from "@/lib/validations";
 import { handleApiError, notFound } from "@/lib/errors";
+import { broadcastToProject } from "@/lib/socket";
 
 type Params = { params: Promise<{ id: string; taskId: string }> };
 
@@ -54,6 +55,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     if (!task) throw notFound("Task");
 
+    broadcastToProject(id, "task:updated", task);
+
     return NextResponse.json({ success: true, data: task });
   } catch (error) {
     return handleApiError(error);
@@ -72,6 +75,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
 
     // Delete all comments for this task
     await Comment.deleteMany({ task: taskId });
+
+    broadcastToProject(id, "task:deleted", { taskId });
 
     return NextResponse.json({ success: true, data: { deleted: true } });
   } catch (error) {

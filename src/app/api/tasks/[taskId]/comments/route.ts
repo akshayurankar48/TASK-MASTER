@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/api-utils";
 import { createCommentSchema, commentQuerySchema } from "@/lib/validations";
 import { handleApiError, notFound, forbidden } from "@/lib/errors";
 import { Project } from "@/lib/db/models";
+import { broadcastToProject } from "@/lib/socket";
 
 type Params = { params: Promise<{ taskId: string }> };
 
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest, { params }: Params) {
       "author",
       "name email avatar"
     );
+
+    // Broadcast to project room
+    broadcastToProject(project._id.toString(), "comment:added", populated);
 
     return NextResponse.json(
       { success: true, data: populated },

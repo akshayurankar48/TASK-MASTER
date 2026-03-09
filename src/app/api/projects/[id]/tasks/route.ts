@@ -4,7 +4,8 @@ import { Task } from "@/lib/db/models";
 import { requireProjectMember, requireAuth } from "@/lib/api-utils";
 import { createTaskSchema, taskQuerySchema } from "@/lib/validations";
 import { handleApiError } from "@/lib/errors";
- 
+import { broadcastToProject } from "@/lib/socket";
+
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -29,6 +30,9 @@ export async function POST(request: NextRequest, { params }: Params) {
     const populated = await Task.findById(task._id)
       .populate("assignees", "name email avatar")
       .populate("createdBy", "name email avatar");
+
+    // Broadcast to project room
+    broadcastToProject(id, "task:created", populated);
 
     return NextResponse.json(
       { success: true, data: populated },
