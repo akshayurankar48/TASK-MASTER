@@ -20,26 +20,18 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUIStore } from "@/stores/ui-store";
+import { useLogout } from "@/hooks/use-logout";
+import { getInitials } from "@/lib/utils";
 import { PresenceAvatars } from "./presence-avatars";
 
 export function TopBar() {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
   const setCommandPaletteOpen = useUIStore((s) => s.setCommandPaletteOpen);
+  const handleLogout = useLogout();
 
-  function handleLogout() {
-    logout();
-    router.push("/login");
-  }
-
-  const initials = user?.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const initials = getInitials(user?.name);
 
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
@@ -73,7 +65,7 @@ export function TopBar() {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
                 />
               )}
             >

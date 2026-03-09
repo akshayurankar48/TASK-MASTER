@@ -1,29 +1,19 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Moon, Sun, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth-store";
+import { useLogout } from "@/hooks/use-logout";
+import { getInitials } from "@/lib/utils";
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
+  const handleLogout = useLogout();
 
-  function handleLogout() {
-    logout();
-    router.push("/login");
-  }
-
-  const initials = user?.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const initials = getInitials(user?.name);
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
@@ -57,9 +47,9 @@ export default function SettingsPage() {
             variant="outline"
             size="sm"
             className="gap-2"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           >
-            {theme === "dark" ? (
+            {resolvedTheme === "dark" ? (
               <>
                 <Sun className="h-4 w-4" />
                 Light
