@@ -54,11 +54,9 @@ export function CreateProjectDialog({ onCreated }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button size="sm" className="gap-2">
-          <Plus className="h-4 w-4" />
-          New Project
-        </Button>
+      <DialogTrigger render={(props) => <Button {...props} size="sm" className="gap-2" />}>
+        <Plus className="h-4 w-4" />
+        New Project
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={handleSubmit}>
